@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
-. .ci/travis.sh
 
 if [ "$1" = "release-ready" ] || [ "$1" = "mingw" ] || [ "$1" = "coverity" ] || [ "$1" = "options-enabled" ] || [ "$1" = "options-disabled" ] ; then
   exit 0
@@ -9,6 +8,8 @@ fi
 
 NUM_TRIES=5
 
+travis_fold start "ninja-test"
+travis_time_start "ninja-test"
 if [ "$1" = "codecov" ] ; then
   for tries in $(seq 1 ${NUM_TRIES}); do
     meson test -t 120 -C build --wrapper dbus-launch && break
@@ -20,7 +21,6 @@ if [ "$1" = "codecov" ] ; then
   exit 0
 fi
 
-travis_fold check "ninja test"
 if [ "$DISTRO" != "" ] ; then
   for tries in $(seq 1 ${NUM_TRIES}); do
     if [ "$1" = "asan" ]; then
@@ -34,6 +34,7 @@ if [ "$DISTRO" != "" ] ; then
   done
 fi
 ret=$?
-travis_endfold check
+travis_time_finish "ninja-test"
+travis_fold end "ninja-test"
 
 exit $ret

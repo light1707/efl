@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
-. .ci/travis.sh
 
+travis_fold start "meson"
+travis_time_start "meson"
 if [ "$DISTRO" != "" ] ; then
   # Why do we need to disable the imf loaders here?
   OPTS=" -Decore-imf-loaders-disabler=scim,ibus"
@@ -52,38 +53,30 @@ if [ "$DISTRO" != "" ] ; then
     OPTS="$OPTS $RELEASE_READY_LINUX_COPTS"
   elif [ "$1" = "coverity" ]; then
     OPTS="$OPTS $WAYLAND_LINUX_COPTS"
-    travis_fold cov-download cov-download
+    travis_fold start "cov-download"
     docker exec --env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN $(cat $HOME/cid) sh -c '.ci/coverity-tools-install.sh'
-    travis_endfold cov-download
+    travis_fold end "cov-download"
   elif [ "$1" = "mingw" ]; then
     OPTS="$OPTS $MINGW_COPTS"
-    travis_fold cross-native cross-native
+    travis_fold start "cross-native"
     docker exec $(cat $HOME/cid) sh -c '.ci/bootstrap-efl-native-for-cross.sh'
-    travis_endfold cross-native
+    travis_fold end "cross-native"
   fi
 
   if [ "$1" = "asan" ]; then
-    travis_fold meson meson
     docker exec --env EIO_MONITOR_POLL=1 --env CC="ccache gcc" \
       --env CXX="ccache g++" --env CFLAGS="-O0 -g" --env CXXFLAGS="-O0 -g" \
       --env LD="ld.gold" $(cat $HOME/cid) sh -c "mkdir build && meson build $OPTS -Db_sanitize=address"
-    travis_endfold meson
   elif [ "$1" = "mingw" ]; then
-    travis_fold meson meson
     docker exec --env EIO_MONITOR_POLL=1 --env PKG_CONFIG_PATH="/ewpi-64-install/lib/pkgconfig/" \
        $(cat $HOME/cid) sh -c "mkdir build && meson build $OPTS"
-    travis_endfold meson
   elif [ "$1" = "coverity" ]; then
-    travis_fold meson meson
     docker exec --env EIO_MONITOR_POLL=1 --env CFLAGS="-fdirectives-only"  --env CC="gcc" --env CXX="g++"\
     --env CXXFLAGS="-fdirectives-only" $(cat $HOME/cid) sh -c "mkdir build && meson build $OPTS"
-    travis_endfold meson
   else
-    travis_fold meson meson
     docker exec --env EIO_MONITOR_POLL=1 --env CC="ccache gcc" \
       --env CXX="ccache g++" --env CFLAGS="-fdirectives-only" --env CXXFLAGS="-fdirectives-only" \
       --env LD="ld.gold" $(cat $HOME/cid) sh -c "mkdir build && meson build $OPTS"
-    travis_endfold meson
   fi
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
   # Prepare OSX env for build
@@ -97,11 +90,9 @@ elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
   LIBFFI_VER=$(brew list --versions libffi|head -n1|cut -d' ' -f2)
   export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig:/usr/local/Cellar/libffi/$LIBFFI_VER/lib/pkgconfig"
   export CC="ccache gcc"
-  travis_fold meson meson
   mkdir build && meson build -Dopengl=full -Decore-imf-loaders-disabler=scim,ibus -Dx11=false -Davahi=false -Deeze=false -Dsystemd=false -Dnls=false -Dcocoa=true -Demotion-loaders-disabler=gstreamer1,libvlc,xine
-  travis_endfold meson
 else
-  travis_fold meson meson
   mkdir build && meson build -Decore-imf-loaders-disabler=scim,ibus -Db_coverage=true
-  travis_endfold meson
 fi
+travis_time_finish "meson"
+travis_fold end "meson"

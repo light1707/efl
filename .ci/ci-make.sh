@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
-. .ci/travis.sh
 
 if [ "$1" = "release-ready" ] ; then
   exit 0
 fi
 
-travis_fold ninja ninja
+travis_fold start "ninja"
+travis_time_start "ninja"
 if [ "$1" = "asan" ]; then
   docker exec --env EIO_MONITOR_POLL=1 --env ASAN_OPTIONS=abort_on_error=0 --env LSAN_OPTIONS=suppressions=/src/.ci/asan-ignore-leaks.supp $(cat $HOME/cid) ninja -C build
   exit $?
@@ -27,4 +27,5 @@ elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
 else
   ninja -C build
 fi
-travis_endfold ninja
+travis_time_finish "ninja"
+travis_fold end "ninja"

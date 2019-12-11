@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
-. .ci/travis.sh
 
 if [ "$1" = "release-ready" ] || [ "$1" = "coverity" ] ; then
   exit 0
 fi
 
-travis_fold install "ninja install"
+travis_fold start "ninja-install"
+travis_time_start "ninja-install"
 if [ "$1" = "asan" ]; then
   docker exec --env EIO_MONITOR_POLL=1 --env ASAN_OPTIONS=abort_on_error=0 --env LSAN_OPTIONS=suppressions=/src/.ci/asan-ignore-leaks.supp $(cat $HOME/cid) ninja -C build install
   exit $?
@@ -20,4 +20,5 @@ elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
 else
   sudo ninja -C build install
 fi
-travis_endfold install
+travis_time_finish "ninja-install"
+travis_fold end "ninja-install"
