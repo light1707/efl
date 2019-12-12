@@ -3,7 +3,7 @@
 set -e
 . .ci/travis.sh
 
-if [ "$1" = "release-ready" ] || [ "$1" = "mingw" ] || [ "$1" = "coverity" ] || [ "$1" = "options-enabled" ] || [ "$1" = "options-disabled" ]; then
+if [ "$1" = "release-ready" ] || [ "$1" = "mingw" ] || [ "$1" = "coverity" ] || [ "$1" = "options-enabled" ] || [ "$1" = "options-disabled" ] || [ "$1" = "codecov" ]; then
   exit 0
 fi
 
