@@ -10,6 +10,7 @@ fi
 NUM_TRIES=5
 
 if [ "$1" = "codecov" ] ; then
+  ninja benchmark -C build
   for tries in $(seq 1 ${NUM_TRIES}); do
     meson test -t 120 -C build --wrapper dbus-launch && break
     cat build/meson-logs/testlog-dbus-launch.txt
