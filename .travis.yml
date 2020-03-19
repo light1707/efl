@@ -78,7 +78,6 @@ jobs:
     - os: linux
       env: DISTRO=Fedora31-exactness CI_BUILD_TYPE=exactness
     - os: linux
-      if: type = cron
       env: CI_BUILD_TYPE=codecov
     - os: linux
       if: type = cron
